@@ -30,7 +30,14 @@
 @media(max-width:580px){.top{display:block}.data-source{text-align:right;margin-top:12px;max-width:none}.kpi .val{font-size:21px}.map-controls{display:block}.map-controls .minitab{margin:8px 0}.barbutton{grid-template-columns:minmax(85px,1fr) minmax(55px,1.2fr) 107px;gap:6px}.barbutton .n{font-size:10px}.barbutton .label{font-size:11px}.detail-total{font-size:18px}.kpi small{font-size:10px}}
 
 html{direction:ltr}body{direction:rtl}
-html:has(body.snapshot){scroll-behavior:auto!important}.top .data-source{align-self:flex-start;margin-inline-start:auto;text-align:left}.excel-source-link{display:inline-block;margin-bottom:8px;font-size:14px;font-weight:700}@media(max-width:580px){.top .data-source{text-align:left}}</style><style>@media(max-width:580px){.shell{padding:12px}.top{padding:22px 18px}.top h1{font-size:24px;line-height:1.4}.eyebrow{font-size:10px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .val{font-size:24px}.card{padding:16px}.barbutton{grid-template-columns:minmax(80px,1fr) minmax(35px,.8fr) 120px;gap:8px}.barbutton .label{font-size:13px;white-space:normal}.barbutton .n{font-size:12px}.sector-detail{min-height:0}.tablewrap{max-height:720px;overflow-y:auto}#funds table{min-width:0;display:block}#funds thead{display:none}#funds tbody{display:block}#funds tr{display:block;margin-bottom:14px;padding:14px;background:#f5f9fc;border:1px solid #dce8f1;border-radius:12px}#funds td{display:block!important;width:auto!important;padding:7px 0!important;text-align:right!important;border:0!important;white-space:normal!important}#funds td::before{content:attr(data-label);display:block;font-size:11px;color:#617a90;margin-bottom:3px}#funds td:first-child{font-size:21px}#funds td:nth-child(2){font-size:14px}#funds td:nth-child(5){font-size:17px;font-weight:bold}.category-code{font-size:12px}.fund-issuer{font-size:12px}.snapshot #funds tr{break-inside:avoid}}.mobile-gallery-link{display:inline-block;margin-top:8px;font-size:13px}</style></head><body dir="rtl"><div class="shell">
+html:has(body.snapshot){scroll-behavior:auto!important}.top .data-source{align-self:flex-start;margin-inline-start:auto;text-align:left}.excel-source-link{display:inline-block;margin-bottom:8px;font-size:14px;font-weight:700}@media(max-width:580px){.top .data-source{text-align:left}}</style><style>@media(max-width:580px){.shell{padding:12px}.top{padding:22px 18px}.top h1{font-size:24px;line-height:1.4}.eyebrow{font-size:10px}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .val{font-size:24px}.card{padding:16px}.barbutton{grid-template-columns:minmax(80px,1fr) minmax(35px,.8fr) 120px;gap:8px}.barbutton .label{font-size:13px;white-space:normal}.barbutton .n{font-size:12px}.sector-detail{min-height:0}.tablewrap{max-height:720px;overflow-y:auto}#funds table{min-width:0;display:block}#funds thead{display:none}#funds tbody{display:block}#funds tr{display:block;margin-bottom:14px;padding:14px;background:#f5f9fc;border:1px solid #dce8f1;border-radius:12px}#funds td{display:block!important;width:auto!important;padding:7px 0!important;text-align:right!important;border:0!important;white-space:normal!important}#funds td::before{content:attr(data-label);display:block;font-size:11px;color:#617a90;margin-bottom:3px}#funds td:first-child{font-size:21px}#funds td:nth-child(2){font-size:14px}#funds td:nth-child(5){font-size:17px;font-weight:bold}.category-code{font-size:12px}.fund-issuer{font-size:12px}.snapshot #funds tr{break-inside:avoid}}.mobile-gallery-link{display:inline-block;margin-top:8px;font-size:13px}</style><style id="etf-accordion-control-v1">
+.etf-collapse-toggle{appearance:none;background:transparent;border:0;color:inherit;width:100%;padding:0;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:right;cursor:pointer}
+.etf-collapse-toggle .sectionhead{flex:1;margin:0}.etf-chevron{font-size:18px;color:#52718b;transition:transform .15s}
+.etf-collapse-toggle[aria-expanded="true"] .etf-chevron{transform:rotate(180deg)}
+.etf-closed{padding-bottom:14px!important}
+.etf-closed .etf-collapse-body{display:none!important}
+.etf-search-button{white-space:nowrap}
+</style></head><body dir="rtl"><div class="shell">
 <header class="top"><div><div class="eyebrow">INDUSTRY INTELLIGENCE / US-LISTED ETFs</div><h1>מפת שוק קרנות הסל בארה״ב: 2,000 הקרנות הגדולות שנבחרו</h1><div class="mutedwhite">מנפיקים וריכוזיות · קטגוריות וסקטורים · קרנות</div></div><div class="data-source">דוח: <a href="https://docs.google.com/spreadsheets/d/11dqtHOCdJf45sb5aqdZ7k1qj59LxJH2j/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong><bdi dir="ltr">ETF-ראשי.xlsx</bdi></strong></a><br>מקור: <a href="https://etfexplorer.com/screener?lang=en" target="_blank" rel="noopener noreferrer"><strong><bdi dir="ltr">ETF Explorer</bdi></strong></a><br>תאריך: <bdi dir="ltr">27.10.2026</bdi></div></header>
 <section id="overview" class="section"><div class="sectionhead"><h2>01 / תמונת המאגר</h2><span class="annot" id="coverage"></span></div><div id="kpis" class="kpis"></div></section>
 <section class="section issuers-concentration">
@@ -185,5 +192,51 @@ $('search').oninput=()=>{clearDetail();visible=RAW.length;draw();};
 $('reset').onclick=reset;
 $('moreFunds').onclick=()=>{visible+=40;draw();};
 drawOverview();draw();
+
+// etf-accordion-control-v1: display only, no changes to ETF records or calculations
+function setupEtfAccordions(){
+  const ids=['overview','issuers','concentration','sectors','funds'];
+  for(const id of ids){
+    const section=document.getElementById(id);
+    if(!section)continue;
+    const head=section.querySelector(':scope > .sectionhead');
+    if(!head)continue;
+    const contents=Array.from(section.childNodes).filter(n=>n!==head);
+    const body=document.createElement('div');
+    body.className='etf-collapse-body';
+    for(const n of contents)body.appendChild(n);
+    const toggle=document.createElement('button');
+    toggle.type='button';toggle.className='etf-collapse-toggle';
+    toggle.setAttribute('aria-controls','etf-content-'+id);
+    toggle.setAttribute('aria-expanded',id==='overview'?'true':'false');
+    head.replaceWith(toggle);
+    toggle.appendChild(head);
+    const chevron=document.createElement('span');chevron.className='etf-chevron';chevron.setAttribute('aria-hidden','true');chevron.textContent='⌄';
+    toggle.appendChild(chevron);
+    body.id='etf-content-'+id;
+    section.appendChild(body);
+    if(id!=='overview')section.classList.add('etf-closed');
+    toggle.addEventListener('click',()=>{
+      const open=section.classList.toggle('etf-closed')===false;
+      toggle.setAttribute('aria-expanded',open?'true':'false');
+    });
+  }
+  const search=document.getElementById('search');
+  if(search){
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='ghost etf-search-button';btn.textContent='חיפוש';
+    const label=search.closest('label');
+    if(label)label.insertAdjacentElement('afterend',btn);
+    btn.addEventListener('click',()=>{
+      const funds=document.getElementById('funds');
+      if(funds&&funds.classList.contains('etf-closed'))funds.querySelector('.etf-collapse-toggle').click();
+      search.dispatchEvent(new Event('input',{bubbles:true}));
+      document.getElementById('fundRows')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();btn.click();}});
+  }
+}
+setupEtfAccordions();
+
 
 </script></body></html>
