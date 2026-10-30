@@ -267,7 +267,7 @@ setupEtfAccordions();
  const action=document.createElement('button');
  action.className='atlas-to-search';action.type='button';action.textContent='הצג קרנות במנוע האיתור';
  sectors?.querySelector('.source-note')?.insertAdjacentElement('beforebegin',action);
- function setMode(mode,fromSector=false){
+ function setMode(mode,fromSector=false,initial=false){
   document.body.classList.toggle('atlas-search-mode',mode==='search');
   document.body.classList.toggle('atlas-dashboard-mode',mode==='dashboard');
   for(const button of tabs.querySelectorAll('button'))button.setAttribute('aria-selected',String(button.dataset.atlasMode===mode));
@@ -280,13 +280,13 @@ setupEtfAccordions();
     if(typeof draw==='function')draw();
    }
   }
-  tabs.scrollIntoView({block:'start',behavior:'smooth'});
+  if(!initial)tabs.scrollIntoView({block:'start',behavior:'smooth'});
  }
  tabs.addEventListener('click',e=>{
   const button=e.target.closest('[data-atlas-mode]');
   if(button)setMode(button.dataset.atlasMode);
  });
  action.addEventListener('click',()=>setMode('search',true));
- setMode('dashboard');
+ setMode('dashboard',false,true);
 })();
 </script></body></html>
