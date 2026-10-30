@@ -85,9 +85,9 @@ def main():
  # Update the visible refresh date and embedded metadata only after validated data changes.
  if changes > 0:
   refreshed=datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d.%m.%Y")
-  updated,count=re.subn(r'(תאריך:\\s*<bdi dir="ltr">)\\d{2}\\.\\d{2}\\.\\d{4}(</bdi>)',lambda m:m.group(1)+refreshed+m.group(2),updated,count=1)
+  updated,count=re.subn(r'(תאריך:\s*<bdi dir="ltr">)\d{2}\.\d{2}\.\d{4}(</bdi>)',lambda m:m.group(1)+refreshed+m.group(2),updated,count=1)
   if count!=1:raise RuntimeError("Refresh date label missing, refusing update")
-  updated,count=re.subn(r'("refreshed":")\\d{2}\\.\\d{2}\\.\\d{4}(")',lambda m:m.group(1)+refreshed+m.group(2),updated,count=1)
+  updated,count=re.subn(r'("refreshed":")\d{2}\.\d{2}\.\d{4}(")',lambda m:m.group(1)+refreshed+m.group(2),updated,count=1)
   if count!=1:raise RuntimeError("Refresh metadata missing, refusing update")
  HTML.write_text(updated,encoding="utf-8")
  print(f"Updated {overlap} matching symbols, {changes} fields. Source={SOURCE}. Timestamp={datetime.now(timezone.utc).isoformat()}")
