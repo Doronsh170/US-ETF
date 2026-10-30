@@ -2,6 +2,7 @@
 """Refresh the embedded ETF dataset from ETF Explorer CSV without losing local classifications."""
 import csv, io, json, os, re, sys, urllib.request
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 HTML=Path("US_ETF_Market_Atlas.html")
@@ -81,6 +82,13 @@ def main():
   if "function etfReturnPct(" not in updated:
    updated=updated.replace("const RAW=", "function etfReturnPct(x){return x==null||!Number.isFinite(Number(x))?'—':Number(x).toFixed(2)+'%';}\nconst RAW=",1)
   updated=updated.replace('colspan="5" class="empty"','colspan="8" class="empty"',1)
+ # Update the visible refresh date and embedded metadata only after validated data changes.
+ if changes > 0:
+  refreshed=datetime.now(ZoneInfo("Asia/Jerusalem")).strftime("%d.%m.%Y")
+  updated,count=re.subn(r'(תאריך:\\s*<bdi dir="ltr">)\\d{2}\\.\\d{2}\\.\\d{4}(</bdi>)',lambda m:m.group(1)+refreshed+m.group(2),updated,count=1)
+  if count!=1:raise RuntimeError("Refresh date label missing, refusing update")
+  updated,count=re.subn(r'("refreshed":")\\d{2}\\.\\d{2}\\.\\d{4}(")',lambda m:m.group(1)+refreshed+m.group(2),updated,count=1)
+  if count!=1:raise RuntimeError("Refresh metadata missing, refusing update")
  HTML.write_text(updated,encoding="utf-8")
  print(f"Updated {overlap} matching symbols, {changes} fields. Source={SOURCE}. Timestamp={datetime.now(timezone.utc).isoformat()}")
 if __name__=="__main__":main()
