@@ -37,6 +37,16 @@ html:has(body.snapshot){scroll-behavior:auto!important}.top .data-source{align-s
 .etf-closed{padding-bottom:14px!important}
 .etf-closed .etf-collapse-body{display:none!important}
 .etf-search-button{white-space:nowrap}
+</style><style id="atlas-mode-trial-css">
+.atlas-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.atlas-mode{font:inherit;border:1px solid #b7d0e0;border-radius:13px;background:white;padding:15px 12px;font-weight:700;color:#23445d;cursor:pointer}
+.atlas-mode[aria-selected="true"]{background:#175f89;color:white;border-color:#175f89}
+body.atlas-search-mode #overview,body.atlas-search-mode #issuers,body.atlas-search-mode #concentration,body.atlas-search-mode #sectors{display:none!important}
+body.atlas-dashboard-mode #funds{display:none!important}
+body.atlas-search-mode #fundFilters{display:block;max-width:none}
+body.atlas-search-mode #fundFilters:not([open]){display:block}
+.atlas-to-search{margin:12px 0 0;border:1px solid #bfd3e1;background:#eef6fc;border-radius:9px;padding:9px 14px;color:#175f89;font-weight:700;cursor:pointer}
+@media(max-width:580px){.atlas-mode{font-size:14px;padding:12px 8px}.atlas-modes{gap:7px}}
 </style></head><body dir="rtl"><div class="shell">
 <header class="top"><div><div class="eyebrow">INDUSTRY INTELLIGENCE / US-LISTED ETFs</div><h1>מפת שוק קרנות הסל בארה״ב: 2,000 הקרנות הגדולות שנבחרו</h1><div class="mutedwhite">מנפיקים וריכוזיות · קטגוריות וסקטורים · קרנות</div></div><div class="data-source">דוח: <a href="https://docs.google.com/spreadsheets/d/11dqtHOCdJf45sb5aqdZ7k1qj59LxJH2j/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong><bdi dir="ltr">ETF-ראשי.xlsx</bdi></strong></a><br>מקור: <a href="https://etfexplorer.com/screener?lang=en" target="_blank" rel="noopener noreferrer"><strong><bdi dir="ltr">ETF Explorer</bdi></strong></a><br>תאריך: <bdi dir="ltr">30.10.2026</bdi></div></header>
 <section id="overview" class="section"><div class="sectionhead"><h2>תמונת המאגר</h2><span class="annot" id="coverage"></span></div><div id="kpis" class="kpis"></div></section>
@@ -242,4 +252,41 @@ function setupEtfAccordions(){
 setupEtfAccordions();
 
 
+
+// Trial-only navigation, preserving original ETF data, calculations, and styling.
+(function(){
+ const host=document.querySelector('.shell');
+ const header=host&&host.querySelector('header.top');
+ const tabs=document.createElement('nav');
+ tabs.className='atlas-modes';
+ tabs.setAttribute('role','tablist');
+ tabs.setAttribute('aria-label','מצבי עבודה');
+ tabs.innerHTML='<button type="button" class="atlas-mode" role="tab" data-atlas-mode="dashboard" aria-selected="true">דשבורד ענפי</button><button type="button" class="atlas-mode" role="tab" data-atlas-mode="search" aria-selected="false">איתור והשוואת ETF</button>';
+ if(header)header.insertAdjacentElement('afterend',tabs);
+ const sectors=document.getElementById('sectors');
+ const action=document.createElement('button');
+ action.className='atlas-to-search';action.type='button';action.textContent='הצג קרנות במנוע האיתור';
+ sectors?.querySelector('.source-note')?.insertAdjacentElement('beforebegin',action);
+ function setMode(mode,fromSector=false,initial=false){
+  document.body.classList.toggle('atlas-search-mode',mode==='search');
+  document.body.classList.toggle('atlas-dashboard-mode',mode==='dashboard');
+  for(const button of tabs.querySelectorAll('button'))button.setAttribute('aria-selected',String(button.dataset.atlasMode===mode));
+  if(mode==='search'){
+   const funds=document.getElementById('funds');
+   if(funds.classList.contains('etf-closed'))funds.querySelector('.etf-collapse-toggle')?.click();
+   document.getElementById('fundFilters').open=true;
+   if(!fromSector){
+    if(typeof clearDetail==='function')clearDetail();
+    if(typeof draw==='function')draw();
+   }
+  }
+  if(!initial)tabs.scrollIntoView({block:'start',behavior:'smooth'});
+ }
+ tabs.addEventListener('click',e=>{
+  const button=e.target.closest('[data-atlas-mode]');
+  if(button)setMode(button.dataset.atlasMode);
+ });
+ action.addEventListener('click',()=>setMode('search',true));
+ setMode('dashboard',false,true);
+})();
 </script></body></html>
