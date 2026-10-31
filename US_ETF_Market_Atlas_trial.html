@@ -277,6 +277,7 @@ setupEtfAccordions();
  selectOptions('finderIssuer',unique(RAW.map(f=>f.Issuer)),'כל המנפיקים');
  selectOptions('finderFamily',unique(RAW.map(f=>f.family)),'כל המשפחות');
  selectOptions('finderCategory',unique(RAW.map(f=>f.Category)),'כל הקטגוריות',v=>labels[v]||v);
+ let returnTarget=null;
  let searched=false,limit=40,rows=[],selected=new Set(),comparing=false,order='AUM_USD',direction=-1;
  const fields=[['AUM_USD','נכסים מנוהלים'],['ExpenseRatioPct','דמי ניהול'],['YieldTTMPct','תשואת חלוקה TTM'],['YTDPct','YTD'],['Return1YPct','שנה'],['Return3YAnnPct','3 שנים (שנתי)']];
  function subs(){selectOptions('finderSub',unique(RAW.filter(f=>!val('finderSector')||f.sector===val('finderSector')).map(f=>f.sub)),'כל תתי־הסקטורים');$('finderSub').disabled=!val('finderSector');}
@@ -293,16 +294,28 @@ setupEtfAccordions();
  $('finderMore').hidden=rows.length<=limit;}
  function run(){searched=true;limit=40;order='AUM_USD';direction=-1;render();}
  function clear(){ $('finderForm').reset();subs();searched=false;limit=40;render();}
- $('finderForm').onsubmit=e=>{e.preventDefault();run();};
- for(const id of ['finderSector','finderSub','finderIssuer','finderFamily','finderCategory'])$(id).onchange=()=>{if(id==='finderSector'){$('finderSub').value='';subs();}run();};
+ $('finderForm').onsubmit=e=>{e.preventDefault();run();revealResults();};
+ for(const id of ['finderSector','finderSub','finderIssuer','finderFamily','finderCategory'])$(id).onchange=()=>{if(id==='finderSector'){$('finderSub').value='';subs();}run();revealResults();};
  $('finderReset').onclick=clear;$('finderMore').onclick=()=>{limit+=40;render();};
  finder.addEventListener('change',e=>{if(e.target.matches('[data-compare]')){if(e.target.checked&&selected.size<4)selected.add(e.target.dataset.compare);else selected.delete(e.target.dataset.compare);render();}});
  finder.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.remove){selected.delete(b.dataset.remove);render();}if(b.id==='finderClearCompare'){selected.clear();comparing=false;render();}if(b.id==='finderCompare'){comparing=true;selection();$('finderComparison').scrollIntoView({block:'nearest'});}if(b.dataset.finderSort){if(order===b.dataset.finderSort)direction*=-1;else{order=b.dataset.finderSort;direction=['Symbol','Name','categoryLabel','sector'].includes(order)?1:-1;}render();}});
  tabs.addEventListener('click',e=>{const b=e.target.closest('[data-atlas-mode]');if(b){setMode(b.dataset.atlasMode==='search');tabs.scrollIntoView({block:'start'});}});
  const action=document.createElement('button');action.className='atlas-to-search';action.type='button';action.textContent='הצג קרנות במנוע האיתור';$('sectors').querySelector('.source-note').before(action);
- function fromDashboard(){clear();$('finderSector').value=chosenSector;subs();$('finderSub').value=chosenSub;$('finderCategory').value=chosenCategory;$('finderIssuer').value=val('issuerFilter');$('finderFamily').value=val('familyFilter');$('finderQuery').value=chosenSymbol||val('search');setMode(true);run();finder.scrollIntoView({block:'start'});}
- action.onclick=fromDashboard;
- document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||finder.contains(b))return;if(b.hasAttribute('data-sub')||b.hasAttribute('data-fund'))fromDashboard();});
+ function fromDashboard(source){returnTarget=source||action;clear();$('finderSector').value=chosenSector;subs();$('finderSub').value=chosenSub;$('finderCategory').value=chosenCategory;$('finderIssuer').value=val('issuerFilter');$('finderFamily').value=val('familyFilter');$('finderQuery').value=chosenSymbol||val('search');setMode(true);run();revealResults();}
+ action.onclick=()=>fromDashboard(action);
+ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||finder.contains(b))return;if(['data-sector','data-category','data-sub','data-fund','data-all','data-issuer'].some(attr=>b.hasAttribute(attr)))fromDashboard(b);});
+
+ const resultNav=document.createElement('div');resultNav.id='finderResultNav';resultNav.hidden=true;
+ resultNav.innerHTML='<div class="result-nav-actions"><button type="button" class="ghost" id="finderBack">חזרה לבחירה בדשבורד</button><strong id="finderContext"></strong><button type="button" class="ghost" id="finderEditFilters">שינוי חיפוש וסינון</button></div><label id="finderQuickSubLabel" hidden>תת־סקטור <select id="finderQuickSub" aria-label="בחירת תת־סקטור בתוצאות"></select></label>';
+ $('finderStatus').before(resultNav);$('finderStatus').tabIndex=-1;
+ const navStyle=document.createElement('style');navStyle.textContent='#finderResultNav{position:sticky;top:0;z-index:30;background:#fff;border:1px solid #bfd3e1;border-radius:12px;padding:12px;margin-top:18px;box-shadow:0 4px 16px #142a4314}#finderResultNav[hidden]{display:none}.result-nav-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}#finderContext{flex:1;min-width:140px}#finderQuickSubLabel{margin-top:10px;display:flex;align-items:center;gap:10px}#finderQuickSubLabel[hidden]{display:none}#finderQuickSub{width:auto;max-width:100%;flex:1}#finderStatus{scroll-margin-top:175px}#finderResultNav{scroll-margin-top:12px}@media(max-width:580px){#finderResultNav{padding:9px}.result-nav-actions{gap:7px}#finderContext{order:-1;flex-basis:100%}.result-nav-actions button{flex:1;font-size:12px;padding:10px 6px}}';document.head.append(navStyle);
+ function updateResultNav(){resultNav.hidden=!searched;$('finderContext').textContent=[val('finderSector'),val('finderSub'),val('finderCategory')?(labels[val('finderCategory')]||val('finderCategory')):'',val('finderIssuer')].filter(Boolean).join(' · ')||'תוצאות חיפוש קרנות';$('finderBack').hidden=!returnTarget;$('finderQuickSubLabel').hidden=!val('finderSector');selectOptions('finderQuickSub',unique(RAW.filter(f=>f.sector===val('finderSector')).map(f=>f.sub)),'כל תתי־הסקטורים');$('finderQuickSub').value=val('finderSub');}
+ function revealResults(){updateResultNav();requestAnimationFrame(()=>{resultNav.scrollIntoView({block:'start',behavior:'instant'});$('finderStatus').focus({preventScroll:true});});}
+ $('finderQuickSub').onchange=()=>{$('finderSub').value=val('finderQuickSub');run();revealResults();};
+ $('finderBack').onclick=()=>{setMode(false);requestAnimationFrame(()=>{const selector=returnTarget?.hasAttribute('data-sector')?'[data-sector="'+CSS.escape(returnTarget.dataset.sector)+'"]':returnTarget?.hasAttribute('data-category')?'[data-category="'+CSS.escape(returnTarget.dataset.category)+'"]':null;const target=selector?document.querySelector(selector):returnTarget?.isConnected?returnTarget:$('sectors');target?.scrollIntoView({block:'center',behavior:'instant'});target?.focus({preventScroll:true});});};
+ $('finderEditFilters').onclick=()=>{$('finderForm').scrollIntoView({block:'start',behavior:'instant'});$('finderQuery').focus({preventScroll:true});};
+ const previousReset=$('finderReset').onclick;$('finderReset').onclick=()=>{previousReset();updateResultNav();};
+
  subs();render();setMode(false);
 })();
 
