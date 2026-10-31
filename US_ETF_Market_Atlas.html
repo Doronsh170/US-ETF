@@ -253,40 +253,81 @@ setupEtfAccordions();
 
 
 
-// Trial-only navigation, preserving original ETF data, calculations, and styling.
-(function(){
- const host=document.querySelector('.shell');
- const header=host&&host.querySelector('header.top');
- const tabs=document.createElement('nav');
- tabs.className='atlas-modes';
- tabs.setAttribute('role','tablist');
- tabs.setAttribute('aria-label','מצבי עבודה');
- tabs.innerHTML='<button type="button" class="atlas-mode" role="tab" data-atlas-mode="dashboard" aria-selected="true">דשבורד ענפי</button><button type="button" class="atlas-mode" role="tab" data-atlas-mode="search" aria-selected="false">איתור והשוואת ETF</button>';
- if(header)header.insertAdjacentElement('afterend',tabs);
- const sectors=document.getElementById('sectors');
- const action=document.createElement('button');
- action.className='atlas-to-search';action.type='button';action.textContent='הצג קרנות במנוע האיתור';
- sectors?.querySelector('.source-note')?.insertAdjacentElement('beforebegin',action);
- function setMode(mode,fromSector=false,initial=false){
-  document.body.classList.toggle('atlas-search-mode',mode==='search');
-  document.body.classList.toggle('atlas-dashboard-mode',mode==='dashboard');
-  for(const button of tabs.querySelectorAll('button'))button.setAttribute('aria-selected',String(button.dataset.atlasMode===mode));
-  if(mode==='search'){
-   const funds=document.getElementById('funds');
-   if(funds.classList.contains('etf-closed'))funds.querySelector('.etf-collapse-toggle')?.click();
-   document.getElementById('fundFilters').open=true;
-   if(!fromSector){
-    if(typeof clearDetail==='function')clearDetail();
-    if(typeof draw==='function')draw();
-   }
-  }
-  if(!initial)tabs.scrollIntoView({block:'start',behavior:'smooth'});
- }
- tabs.addEventListener('click',e=>{
-  const button=e.target.closest('[data-atlas-mode]');
-  if(button)setMode(button.dataset.atlasMode);
- });
- action.addEventListener('click',()=>setMode('search',true));
- setMode('dashboard',false,true);
+// Isolated trial finder. Source records, classification and dashboard rendering stay unchanged.
+(()=>{
+ const style=document.createElement('style');style.textContent=`
+ body.atlas-search-mode #funds{display:none!important}
+ #finder[hidden]{display:none}#finder{scroll-margin-top:12px}#finder .controls{position:static;grid-template-columns:repeat(3,minmax(0,1fr));margin:12px 0}#finder label{display:grid;gap:6px;font-size:13px}#finder input,#finder select{min-width:0}#finder .finder-query{grid-column:1/-1}#finder .primary{background:#175f89;color:white}#finder .finder-actions{display:flex;gap:10px;flex-wrap:wrap}#finder .result-wrap,#finder .compare-wrap{overflow:auto;margin-top:16px}#finder table{min-width:900px}#finder th{position:static}#finder .selection{margin-top:16px;background:#edf5fb;padding:14px;border-radius:12px}#finder .selection button{margin:4px}#finder .result-name{max-width:260px}#finder .result-name small{display:block;color:#60788d}#finder input[type=checkbox]{width:22px;min-height:22px;accent-color:#175f89}#finder .empty{padding:32px 12px}#finder .compare-wrap th{min-width:130px}#finder .compare-wrap td{min-width:160px}#finder .compare-wrap table{min-width:0}#finder .status{margin-top:14px;line-height:1.7}#finder button:focus-visible,#finder input:focus-visible,#finder select:focus-visible{outline:3px solid #d79528;outline-offset:2px}
+ @media(max-width:580px){#finder .controls{grid-template-columns:1fr 1fr}#finder .result-wrap table,#finder .result-wrap tbody{display:block;min-width:0}#finder .result-wrap thead{display:none}#finder .result-wrap tr{display:block;border:1px solid #dce8f1;border-radius:12px;padding:12px;margin-bottom:12px;background:#f5f9fc}#finder .result-wrap td{display:flex;align-items:center;justify-content:space-between;gap:12px;border:0;padding:7px 0;max-width:none;overflow-wrap:anywhere}#finder .result-wrap td:before{content:attr(data-label);font-size:12px;color:#617a90;flex-shrink:0}#finder .result-name{display:block!important}#finder .result-name:before{display:block;margin-bottom:6px}#finder .finder-actions button{flex:1}#finder .compare-wrap{max-width:100%}}
+ `;document.head.append(style);
+ const tabs=document.createElement('nav');tabs.className='atlas-modes';tabs.setAttribute('aria-label','מצבי עבודה');
+ tabs.innerHTML='<button type="button" class="atlas-mode" data-atlas-mode="dashboard" aria-pressed="true">דשבורד ענפי</button><button type="button" class="atlas-mode" data-atlas-mode="search" aria-pressed="false">איתור והשוואת ETF</button>';
+ document.querySelector('header.top').after(tabs);
+ const finder=document.createElement('section');finder.id='finder';finder.className='section card';finder.hidden=true;
+ finder.innerHTML=`<h2>איתור והשוואת ETF</h2><p class="note">חפשו לפי סימבול, שם, מנפיק או תחום השקעה. בחרו 2–4 קרנות להשוואה.</p>
+ <form id="finderForm"><div class="controls"><label class="finder-query">חיפוש קרנות<input id="finderQuery" placeholder="למשל SMH, סייבר או Vanguard" autocomplete="off"></label>
+ <label>סקטור / תמה<select id="finderSector"></select></label><label>תת־סקטור<select id="finderSub" disabled></select></label><label>מנפיק<select id="finderIssuer"></select></label></div>
+ <details><summary>סינון נוסף</summary><div class="controls"><label>משפחת קטגוריות<select id="finderFamily"></select></label><label>קטגוריה<select id="finderCategory"></select></label></div></details>
+ <div class="finder-actions"><button class="ghost primary" type="submit">חיפוש קרנות</button><button class="ghost" type="button" id="finderReset">נקה חיפוש וסינון</button></div></form>
+ <div class="status" role="status" id="finderStatus"></div><div class="selection" id="finderSelection" hidden></div><div id="finderComparison" class="compare-wrap" hidden></div>
+ <div id="finderResults" class="result-wrap"></div><button class="ghost" id="finderMore" hidden>הצג עוד קרנות</button>`;
+ $('funds').after(finder);
+ const val=id=>$(id).value;
+ selectOptions('finderSector',unique(RAW.map(f=>f.sector)),'כל הסקטורים והתמות');
+ selectOptions('finderIssuer',unique(RAW.map(f=>f.Issuer)),'כל המנפיקים');
+ selectOptions('finderFamily',unique(RAW.map(f=>f.family)),'כל המשפחות');
+ selectOptions('finderCategory',unique(RAW.map(f=>f.Category)),'כל הקטגוריות',v=>labels[v]||v);
+ let returnTarget=null;
+ let searched=false,limit=40,rows=[],selected=new Set(),comparing=false,order='AUM_USD',direction=-1;
+ const fields=[['AUM_USD','נכסים מנוהלים'],['ExpenseRatioPct','דמי ניהול'],['YieldTTMPct','תשואת חלוקה TTM'],['YTDPct','YTD'],['Return1YPct','שנה'],['Return3YAnnPct','3 שנים (שנתי)']];
+ function subs(){selectOptions('finderSub',unique(RAW.filter(f=>!val('finderSector')||f.sector===val('finderSector')).map(f=>f.sub)),'כל תתי־הסקטורים');$('finderSub').disabled=!val('finderSector');}
+ function setMode(search){document.body.classList.toggle('atlas-search-mode',search);document.body.classList.toggle('atlas-dashboard-mode',!search);finder.hidden=!search;tabs.querySelectorAll('button').forEach(b=>{const active=(b.dataset.atlasMode==='search')===search;b.setAttribute('aria-pressed',active);b.setAttribute('aria-selected',active);});if(search&&!searched)$('finderQuery').focus({preventScroll:true});}
+ function matching(){const q=val('finderQuery').trim().toLowerCase();return RAW.filter(f=>(!q||[f.Symbol,f.Name,f.Issuer,f.Category,f.categoryLabel,f.sector,f.sub].join(' ').toLowerCase().includes(q))&&(!val('finderSector')||f.sector===val('finderSector'))&&(!val('finderSub')||f.sub===val('finderSub'))&&(!val('finderIssuer')||f.Issuer===val('finderIssuer'))&&(!val('finderFamily')||f.family===val('finderFamily'))&&(!val('finderCategory')||f.Category===val('finderCategory')));}
+ function selection(){const funds=RAW.filter(f=>selected.has(f.Symbol));$('finderSelection').hidden=!funds.length;$('finderSelection').innerHTML='<strong>נבחרו '+funds.length+' מתוך 4</strong> '+funds.map(f=>'<button class="ghost" data-remove="'+esc(f.Symbol)+'" aria-label="הסר '+esc(f.Symbol)+'">'+esc(f.Symbol)+' ×</button>').join('')+'<button class="ghost primary" id="finderCompare" '+(funds.length<2?'disabled':'')+'>השוואת קרנות</button><button class="ghost" id="finderClearCompare">נקה בחירה</button>';
+ $('finderComparison').hidden=!comparing||funds.length<2;if(!$('finderComparison').hidden){$('finderComparison').innerHTML='<h3>השוואת קרנות</h3><p class="note">נתונים חסרים מסומנים ב־—. תשואת 3 שנים היא תשואה שנתית.</p><table><thead><tr><th scope="col">מדד</th>'+funds.map(f=>'<th scope="col">'+esc(f.Symbol)+'<br>'+esc(f.Name)+'</th>').join('')+'</tr></thead><tbody>'+[['Issuer','מנפיק'],['categoryLabel','קטגוריה'],['sector','סקטור'],['sub','תת־סקטור'],...fields].map(([key,label])=>'<tr><th scope="row">'+label+'</th>'+funds.map(f=>'<td>'+(key==='AUM_USD'?money(f[key]):key.endsWith('Pct')?etfReturnPct(f[key]):esc(f[key]||'—'))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}}
+ function render(){finder.classList.toggle('has-results',searched);selection();$('finderMore').hidden=true;if(!searched){$('finderStatus').textContent='התוצאות יופיעו כאן לאחר חיפוש או בחירת מסנן.';$('finderResults').innerHTML='';return;}
+ rows=matching().sort((a,b)=>{const x=a[order],y=b[order];return x==null?(y==null?0:1):y==null?-1:direction*(typeof x==='number'?x-y:String(x).localeCompare(String(y),'he'));});
+ $('finderStatus').innerHTML=rows.length.toLocaleString('en-US')+' קרנות · נכסים מנוהלים: '+money(sum(rows))+' · מוצגות '+Math.min(rows.length,limit)+(order==='AUM_USD'&&direction===-1?' · מיון לפי AUM מהגדולה לקטנה':'');
+ if(!rows.length){$('finderResults').innerHTML='<div class="empty">לא נמצאו קרנות. נסו לשנות את החיפוש או לנקות מסננים.</div>';return;}
+ const headings=[['Symbol','סימבול'],['Name','קרן / מנפיק'],['categoryLabel','קטגוריה'],['sector','סקטור / תת־סקטור'],['AUM_USD','נכסים מנוהלים'],['YTDPct','YTD'],['Return1YPct','שנה'],['Return3YAnnPct','3 שנים (שנתי)']];
+ $('finderResults').innerHTML='<table><thead><tr><th>השוואה</th>'+headings.map(([key,label])=>'<th aria-sort="'+(key===order?(direction===-1?'descending':'ascending'):'none')+'"><button class="sortbtn" data-finder-sort="'+key+'">'+label+(key===order?(direction===-1?' ↓':' ↑'):' ↕')+'</button></th>').join('')+'</tr></thead><tbody>'+rows.slice(0,limit).map(f=>'<tr><td data-label="השוואה"><input type="checkbox" data-compare="'+esc(f.Symbol)+'" aria-label="השווה '+esc(f.Symbol)+'" '+(selected.has(f.Symbol)?'checked':'')+' '+(!selected.has(f.Symbol)&&selected.size>=4?'disabled':'')+'></td><td data-label="סימבול">'+officialEtfTicker(f)+'</td><td class="result-name" data-label="קרן / מנפיק"><bdi>'+esc(f.Name)+'</bdi><small>'+esc(f.Issuer)+'</small></td><td data-label="קטגוריה">'+esc(f.categoryLabel)+'</td><td data-label="סקטור / תת־סקטור">'+esc([f.sector,f.sub].filter(Boolean).join(' / ')||'—')+'</td>'+fields.filter(([key])=>!['ExpenseRatioPct','YieldTTMPct'].includes(key)).map(([key,label])=>'<td data-label="'+label+'">'+(key==='AUM_USD'?money(f[key]):etfReturnPct(f[key]))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+ $('finderMore').hidden=rows.length<=limit;}
+ function run(){searched=true;limit=40;order='AUM_USD';direction=-1;render();}
+ function clear(){ $('finderForm').hidden=false;$('finderEditFilters').setAttribute('aria-expanded','false');$('finderForm').reset();subs();searched=false;limit=40;render();}
+ $('finderForm').onsubmit=e=>{e.preventDefault();run();revealResults();};
+ for(const id of ['finderSector','finderSub','finderIssuer','finderFamily','finderCategory'])$(id).onchange=()=>{if(id==='finderSector'){$('finderSub').value='';subs();}run();revealResults();};
+ $('finderReset').onclick=clear;$('finderMore').onclick=()=>{limit+=40;render();};
+ finder.addEventListener('change',e=>{if(e.target.matches('[data-compare]')){if(e.target.checked&&selected.size<4)selected.add(e.target.dataset.compare);else selected.delete(e.target.dataset.compare);render();}});
+ finder.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.remove){selected.delete(b.dataset.remove);render();}if(b.id==='finderClearCompare'){selected.clear();comparing=false;render();}if(b.id==='finderCompare'){comparing=true;selection();$('finderComparison').scrollIntoView({block:'nearest'});}if(b.dataset.finderSort){if(order===b.dataset.finderSort)direction*=-1;else{order=b.dataset.finderSort;direction=['Symbol','Name','categoryLabel','sector'].includes(order)?1:-1;}render();}});
+ tabs.addEventListener('click',e=>{const b=e.target.closest('[data-atlas-mode]');if(b){setMode(b.dataset.atlasMode==='search');tabs.scrollIntoView({block:'start'});}});
+ const action=document.createElement('button');action.className='atlas-to-search';action.type='button';action.textContent='הצג קרנות במנוע האיתור';$('sectors').querySelector('.source-note').before(action);
+ function fromDashboard(source){returnTarget=source||action;clear();$('finderSector').value=chosenSector;subs();$('finderSub').value=chosenSub;$('finderCategory').value=chosenCategory;$('finderIssuer').value=val('issuerFilter');$('finderFamily').value=val('familyFilter');$('finderQuery').value=chosenSymbol||val('search');setMode(true);run();revealResults();}
+ action.onclick=()=>fromDashboard(action);
+ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||finder.contains(b))return;if(['data-sector','data-category','data-sub','data-fund','data-all','data-issuer'].some(attr=>b.hasAttribute(attr)))fromDashboard(b);});
+
+ const resultNav=document.createElement('div');resultNav.id='finderResultNav';resultNav.hidden=true;
+ resultNav.innerHTML='<div class="result-nav-actions"><strong id="finderContext"></strong><button type="button" id="finderEditFilters" aria-controls="finderForm" aria-expanded="false">סינון</button><button type="button" id="finderBack">חזרה לדשבורד</button></div>';
+ $('finderStatus').before(resultNav);$('finderStatus').tabIndex=-1;
+ const navStyle=document.createElement('style');navStyle.textContent='#finderResultNav{position:sticky;top:0;z-index:30;background:#fff;border:1px solid #bfd3e1;border-radius:12px;padding:12px;margin-top:18px;box-shadow:0 4px 16px #142a4314}#finderResultNav[hidden]{display:none}.result-nav-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}#finderContext{flex:1;min-width:140px}#finderQuickSubLabel{margin-top:10px;display:flex;align-items:center;gap:10px}#finderQuickSubLabel[hidden]{display:none}#finderQuickSub{width:auto;max-width:100%;flex:1}#finderStatus{scroll-margin-top:175px}#finderResultNav{scroll-margin-top:12px}@media(max-width:580px){#finderResultNav{padding:9px}.result-nav-actions{gap:7px}#finderContext{order:-1;flex-basis:100%}.result-nav-actions button{flex:1;font-size:12px;padding:10px 6px}}';document.head.append(navStyle);
+ function updateResultNav(){resultNav.hidden=!searched;$('finderContext').textContent=[val('finderSector'),val('finderSub'),val('finderCategory')?(labels[val('finderCategory')]||val('finderCategory')):'',val('finderIssuer')].filter(Boolean).join(' · ')||'תוצאות חיפוש קרנות';$('finderBack').hidden=!returnTarget;}
+ function revealResults(){$('finderForm').hidden=true;$('finderForm').querySelector('details').open=false;$('finderEditFilters').setAttribute('aria-expanded','false');updateResultNav();requestAnimationFrame(()=>{resultNav.scrollIntoView({block:'start',behavior:'instant'});$('finderStatus').focus({preventScroll:true});});}
+ $('finderBack').onclick=()=>{setMode(false);requestAnimationFrame(()=>{const selector=returnTarget?.hasAttribute('data-sector')?'[data-sector="'+CSS.escape(returnTarget.dataset.sector)+'"]':returnTarget?.hasAttribute('data-category')?'[data-category="'+CSS.escape(returnTarget.dataset.category)+'"]':null;const target=selector?document.querySelector(selector):returnTarget?.isConnected?returnTarget:$('sectors');target?.scrollIntoView({block:'center',behavior:'instant'});target?.focus({preventScroll:true});});};
+ $('finderEditFilters').onclick=()=>{const show=$('finderForm').hidden;$('finderForm').hidden=!show;$('finderEditFilters').setAttribute('aria-expanded',String(show));if(show){$('finderForm').scrollIntoView({block:'start',behavior:'instant'});$('finderQuery').focus({preventScroll:true});}else resultNav.scrollIntoView({block:'start',behavior:'instant'});};
+ const calmStyle=document.createElement('style');calmStyle.textContent=`
+ #finderForm[hidden]{display:none!important}#finder.has-results>h2,#finder.has-results>p.note{display:none}
+ #finderResultNav{border:0;border-bottom:1px solid #e5edf3;border-radius:0;box-shadow:none;padding:12px 0;margin-top:0;background:#fff}
+ #finderContext{font-size:18px;line-height:1.5;min-width:0}.result-nav-actions{gap:18px}
+ #finderResultNav button{border:0;background:transparent;color:#23698d;padding:10px 0;font-size:13px;white-space:nowrap;min-height:44px;flex:0 0 auto;border-radius:0}
+ #finderResultNav button:hover{text-decoration:underline}#finderResultNav button[hidden]{display:none}
+ #finder .controls{background:transparent;padding:8px 0;gap:14px}#finderForm>details{max-width:none;border:0;background:transparent;margin:8px 0 16px}
+ #finderForm>details>summary{font-size:13px}#finderForm .finder-actions{padding-top:8px;gap:20px;align-items:center}
+ #finderReset{border:0;background:transparent;padding:10px 0;font-size:13px}#finderForm .primary{border-radius:8px}
+ #finder .status{color:#60788d;font-size:12px;margin-top:12px}#finder .result-wrap{margin-top:10px}
+ @media(max-width:580px){#finderResultNav{padding:8px 0}.result-nav-actions{gap:14px}#finderContext{order:0;flex:1;flex-basis:100%;font-size:17px}.result-nav-actions button{flex:0 0 auto;font-size:13px;padding:4px 0}#finder .finder-actions button{flex:0 0 auto}}
+ `;document.head.append(calmStyle);
+ const previousReset=$('finderReset').onclick;$('finderReset').onclick=()=>{previousReset();updateResultNav();};
+
+ subs();render();setMode(false);
 })();
+
 </script></body></html>
