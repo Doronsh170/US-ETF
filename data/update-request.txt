@@ -1,1 +1,2 @@
 Initial validation request, 2026-10-30. Refresh only if source and field validation passes.
+Refresh request 2026-11-04: validate ETF Explorer CSV and update verified data only.
