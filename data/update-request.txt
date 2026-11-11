@@ -2,3 +2,4 @@ Initial validation request, 2026-10-30. Refresh only if source and field validat
 Refresh request 2026-11-04: validate ETF Explorer CSV and update verified data only.
 Refresh request 2026-11-06: validate source CSV and publish verified changes only.
 Refresh request 2026-11-10: validate newest ETF Explorer CSV and publish verified ETF data only.
+Refresh request 2026-11-12 (after US close 2026-11-11): validate ETF Explorer source and publish verified changes only.
