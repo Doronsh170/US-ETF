@@ -43,17 +43,47 @@ html:has(body.snapshot){scroll-behavior:auto!important}.top .data-source{align-s
 .atlas-mode[aria-selected="true"]{background:#175f89;color:white;border-color:#175f89}
 body.atlas-search-mode #overview,body.atlas-search-mode #issuers,body.atlas-search-mode #concentration,body.atlas-search-mode #sectors{display:none!important}
 body.atlas-dashboard-mode #funds{display:none!important}
+body.atlas-search-mode #relativePerformance{display:none!important}
 body.atlas-search-mode #fundFilters{display:block;max-width:none}
 body.atlas-search-mode #fundFilters:not([open]){display:block}
 .atlas-to-search{margin:12px 0 0;border:1px solid #bfd3e1;background:#eef6fc;border-radius:9px;padding:9px 14px;color:#175f89;font-weight:700;cursor:pointer}
 @media(max-width:580px){.atlas-mode{font-size:14px;padding:12px 8px}.atlas-modes{gap:7px}}
-</style><style id="etf-returns-nowrap">#funds td:nth-child(6),#funds td:nth-child(7),#funds td:nth-child(8){white-space:nowrap!important;word-break:keep-all;overflow-wrap:normal;direction:ltr;text-align:center}#funds th:nth-child(6),#funds th:nth-child(7),#funds th:nth-child(8){white-space:nowrap}</style><style id="etf-pct-nowrap-fix">#funds .etf-pct-nowrap{display:inline-block!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;direction:ltr;unicode-bidi:isolate}#funds td:nth-child(6),#funds td:nth-child(7),#funds td:nth-child(8){white-space:nowrap!important;min-width:72px}</style></head><body dir="rtl"><div class="shell">
+</style><style id="etf-returns-nowrap">#funds td:nth-child(6),#funds td:nth-child(7),#funds td:nth-child(8){white-space:nowrap!important;word-break:keep-all;overflow-wrap:normal;direction:ltr;text-align:center}#funds th:nth-child(6),#funds th:nth-child(7),#funds th:nth-child(8){white-space:nowrap}</style><style id="etf-pct-nowrap-fix">#funds .etf-pct-nowrap{display:inline-block!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;direction:ltr;unicode-bidi:isolate}#funds td:nth-child(6),#funds td:nth-child(7),#funds td:nth-child(8){white-space:nowrap!important;min-width:72px}</style><style id="relative-performance-css">
+#relativePerformance{margin-top:18px}#relativePerformance .rel-body{padding-top:8px}
+#relativePerformance .rel-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+#relativePerformance .rel-label{font-size:12px;font-weight:700;color:#587187;margin-left:4px}
+#relativePerformance .rel-controls button{font:inherit;font-size:13px;border:1px solid #bed3e1;border-radius:8px;padding:8px 12px;background:#fff;color:#1f4f70;cursor:pointer}
+#relativePerformance .rel-controls button[aria-pressed=true]{color:#fff;background:#1c638b;border-color:#1c638b}
+#relativePerformance .rel-summary{display:flex;gap:20px;flex-wrap:wrap;padding:12px 0}
+#relativePerformance .rel-summary strong{font-size:19px}
+#relativePerformance .rel-entry{display:grid;grid-template-columns:minmax(135px,1fr) minmax(120px,2fr) minmax(105px,1fr);gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid #e9eff4}
+#relativePerformance .rel-sector,#relativePerformance .rel-value{display:flex;flex-direction:column;gap:4px}
+#relativePerformance small{color:#698093;font-size:11px}
+#relativePerformance .rel-value{text-align:left;white-space:nowrap}
+#relativePerformance .rel-up{color:#177853}#relativePerformance .rel-down{color:#b13d43}
+#relativePerformance .rel-visual{height:22px;position:relative;background:#eff4f7;border-radius:4px;overflow:hidden}
+#relativePerformance .rel-zero{position:absolute;left:50%;height:100%;width:1px;background:#617c8c}
+#relativePerformance .rel-diff-bar{position:absolute;top:4px;bottom:4px;border-radius:3px}
+#relativePerformance .rel-positive{background:#159778}#relativePerformance .rel-negative{background:#d16c70}
+#relativePerformance .rel-footnote{font-size:12px;color:#62798c;line-height:1.6;padding-top:15px}
+@media(max-width:620px){#relativePerformance .rel-entry{grid-template-columns:minmax(105px,1fr) minmax(60px,1fr) 108px;gap:7px}#relativePerformance .rel-entry strong{font-size:12px}#relativePerformance .rel-visual{height:16px}#relativePerformance .rel-value strong{font-size:12px}#relativePerformance .rel-controls{gap:6px}#relativePerformance .rel-controls button{font-size:12px;padding:7px 9px}}
+</style></head><body dir="rtl"><div class="shell">
 <header class="top"><div><div class="eyebrow">INDUSTRY INTELLIGENCE / US-LISTED ETFs</div><h1>מפת שוק קרנות הסל בארה״ב: 2,000 הקרנות הגדולות שנבחרו</h1><div class="mutedwhite">מנפיקים וריכוזיות · קטגוריות וסקטורים · קרנות</div></div><div class="data-source">דוח: <a href="https://docs.google.com/spreadsheets/d/11dqtHOCdJf45sb5aqdZ7k1qj59LxJH2j/edit?usp=sharing" target="_blank" rel="noopener noreferrer"><strong><bdi dir="ltr">ETF-ראשי.xlsx</bdi></strong></a><br>מקור: <a href="https://etfexplorer.com/screener?lang=en" target="_blank" rel="noopener noreferrer"><strong><bdi dir="ltr">ETF Explorer</bdi></strong></a><br>תאריך: <bdi dir="ltr">12.11.2026</bdi></div></header>
 <section id="overview" class="section"><div class="sectionhead"><h2>תמונת המאגר</h2><span class="annot" id="coverage"></span></div><div id="kpis" class="kpis"></div></section>
 <section class="section issuers-concentration">
 <div class="card" id="issuers"><div class="sectionhead"><h2>נכסים מנוהלים לפי מנפיק</h2></div><div id="issuerBars"></div></div>
 <div class="card" id="concentration"><div class="sectionhead"><h2>ריכוזיות נכסים</h2></div><div id="concen"></div></div>
 </section>
+<section class="section card etf-closed" id="relativePerformance">
+<button type="button" class="etf-collapse-toggle" id="relToggle" aria-expanded="false" aria-controls="relBody"><div class="sectionhead"><h2>מפת ביצועי סקטורים מול SPY ו־QQQ</h2><span class="annot">השוואת תשואות יחסיות</span></div><span class="etf-chevron" aria-hidden="true">⌄</span></button>
+<div class="etf-collapse-body rel-body" id="relBody">
+<p class="note">דירוג הסקטורים לפי תשואת יתר או חסר מול מדד הייחוס. ניתן להציג גם תמות בולטות.</p>
+<div class="rel-controls"><span class="rel-label">תקופה:</span><button type="button" data-rel-period="ytd" aria-pressed="true">מתחילת השנה</button><button type="button" data-rel-period="one" aria-pressed="false">שנה</button><button type="button" data-rel-period="three" aria-pressed="false">3 שנים</button></div>
+<div class="rel-controls"><span class="rel-label">השוואה מול:</span><button type="button" data-rel-base="SPY" aria-pressed="true">SPY</button><button type="button" data-rel-base="QQQ" aria-pressed="false">QQQ</button></div>
+<div class="rel-controls"><span class="rel-label">קבוצות:</span><button type="button" data-rel-scope="core" aria-pressed="true">11 סקטורים מרכזיים</button><button type="button" data-rel-scope="themes" aria-pressed="false">תמות מובילות</button><button type="button" data-rel-scope="all" aria-pressed="false">הכול</button></div>
+<div class="rel-summary"><span><span id="relHeading">תשואה יחסית מול SPY</span></span><span>מדד ייחוס: <strong id="relBaseValue" dir="ltr"></strong></span><span>קרנות בהשוואה: <strong id="relSectorCount"></strong></span></div>
+<div id="relRows"></div><p id="relFootnote" class="rel-footnote"></p>
+</div></section>
 <section class="section card sectors-full" id="sectors">
 <div class="sectionhead"><h2>קטגוריות וסקטורים</h2></div>
 
@@ -330,4 +360,4 @@ setupEtfAccordions();
  subs();render();setMode(false);
 })();
 
-</script></body></html>
+</script><script src="./sector-relative.js"></script></body></html>
